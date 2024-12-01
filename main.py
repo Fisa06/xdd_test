@@ -1,4 +1,3 @@
-
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -9,9 +8,7 @@ from datetime import datetime
 INFLUXDB_URL = "http://raspberrypi.local:8086"    # Replace with your InfluxDB OSS URL
 INFLUXDB_TOKEN = "Eu5BBoaNb-ozGhQlXpd1zOOYUu_VFe0e6PsvC7Z4zsBDPZtKe1bl1UoOyYLCWslerO5hNSIEqfIJFUfI8i0E7A=="        # Replace with your token
 INFLUXDB_ORG = "xdd"                 # Replace with your organization name
-INFLUXDB_BUCKET = "nevim"           # Replace with your bucket name
-
-
+INFLUXDB_BUCKET = "home"           # Replace with your bucket name
 
 # Initialize the InfluxDB client
 client_influx = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
@@ -20,61 +17,52 @@ write_api = client_influx.write_api(write_options=SYNCHRONOUS)
 # MQTT broker details
 BROKER = "t331e64b.ala.eu-central-1.emqxsl.com"
 PORT = 8883
-USERNAME = "grafana"
-PASSWORD = "grafana"
-TOPIC_TEMP = "xdd/temp"  # Topic for temperature
-TOPIC_HUMI = "xdd/humi"  # Topic for humidity
+USERNAME = "pyscript"
+PASSWORD = "123abc456"
+TOPIC = "sensor_dump"  # Topic for environment data
 
-# Variables to store the latest temperature and humidity
-latest_temp = None
-latest_humi = None
+# Function to write to InfluxDB
+def write_to_influxdb(sensor_data):
+    try:
 
-# Function to write to InfluxDB when both temperature and humidity are available
-def write_to_influxdb():
-    global latest_temp, latest_humi
+        for measurement in sensor_data["mm"]:
+            print(measurement)
+            # Convert the incoming timestamp to UTC datetime
+            incoming_time = datetime.strptime(measurement["time"], "%Y-%m-%d %H:%M:%S")
+            # Create a point for each measurement
+            point = Point("environment") \
+                .tag("sensor", sensor_data["esp_id"]) \
+                .field("temperature", measurement["temperature"]) \
+                .field("humidity", measurement["humidity"]) \
+                .time(incoming_time)
 
-    # If both temperature and humidity are available, write to InfluxDB
-    if latest_temp is not None and latest_humi is not None:
-        current_time = datetime.utcnow()
+            write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
 
-        point = Point("environment") \
-            .tag("sensor", "sensor_1") \
-            .field("temperature", latest_temp) \
-            .field("humidity", latest_humi) \
-            .time(current_time)
+        # Write all points to InfluxDB
 
-        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
-        print(f"Data written to InfluxDB: Temp={latest_temp}, Humi={latest_humi} at {current_time}")
+        print(f"Data written to InfluxDB for {sensor_data['esp_id']} with incoming timestamps.")
 
-        # Reset the latest temperature and humidity after writing to InfluxDB
-        latest_temp = None
-        latest_humi = None
+    except Exception as e:
+        print(f"Failed to write data to InfluxDB: {e}")
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected successfully")
-        # Subscribe to both temperature and humidity topics
-        client.subscribe(TOPIC_TEMP)
-        client.subscribe(TOPIC_HUMI)
+        # Subscribe to the topic
+        client.subscribe(TOPIC)
     else:
         print(f"Connection failed with code {rc}")
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    global latest_temp, latest_humi
-
     try:
-        # Check which topic the message came from and update the respective variable
-        if msg.topic == TOPIC_TEMP:
-            latest_temp = float(msg.payload.decode())
-            print(f"Temperature received: {latest_temp}")
-        elif msg.topic == TOPIC_HUMI:
-            latest_humi = float(msg.payload.decode())
-            print(f"Humidity received: {latest_humi}")
+        # Parse the incoming JSON payload
+        sensor_data = json.loads(msg.payload.decode())
+        print(f"Received data: {sensor_data}")
 
-        # Try writing to InfluxDB if both temperature and humidity are available
-        write_to_influxdb()
+        # Write to InfluxDB
+        write_to_influxdb(sensor_data)
 
     except Exception as e:
         print(f"Failed to process MQTT message: {e}")
