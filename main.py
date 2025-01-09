@@ -122,7 +122,6 @@ client = mqtt.Client()
 
 # Set username and password for broker authentication
 client.username_pw_set(USERNAME, PASSWORD)
-
 # Assign the callback functions
 client.on_connect = on_connect
 client.on_message = on_message
