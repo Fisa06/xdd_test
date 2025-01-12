@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 # InfluxDB connection details
-INFLUXDB_URL = "http://172.25.200.8:8086/"
+INFLUXDB_URL = "http://localhost:8086/"
 INFLUXDB_TOKEN = "NVrfQy2lSIzWDWFTDMbiT1wYlx0fl0g7_O7I9EMb8eV49XP89FPO3UdtMV6_F9IUysM_SASucHL7LQ948pve2w=="
 INFLUXDB_ORG = "spseol"
 INFLUXDB_BUCKET = "testing"
@@ -26,21 +26,6 @@ write_api = client_influx.write_api(write_options=SYNCHRONOUS)
 
 # Variables to store the latest temperature and humidity
 
-def write_to_influxdb():
-    global latest_temp, latest_humi
-
-    # If both temperature and humidity are available, write to InfluxDB
-    if latest_temp is not None and latest_humi is not None:
-        current_time = datetime.utcnow()
-
-        point = Point("Test_SPSEOL") \
-            .tag("client_id", "sensor_1") \
-            .field("temperature", latest_temp) \
-            .field("humidity", latest_humi) \
-            .time(current_time)
-
-        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
-        print(f"Data written to InfluxDB: Temp={latest_temp}, Humi={latest_humi} at {current_time}")
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -74,6 +59,7 @@ def on_message(client, userdata, msg):
             pm2p5_raw = mm["pm2p5"]
             pm4p0_raw = mm["pm4p0"]
             pm10p0_raw = mm["pm10p0"]
+
             print(f"ESP ID: {esp_id}")
             print(f"Time: {time}")
             print(f"Temperature: {float(temperature_raw)/200}")
@@ -93,7 +79,6 @@ def on_message(client, userdata, msg):
             pm2p5 = float(pm2p5_raw)/10
             pm4p0 = float(pm4p0_raw)/10
             pm10p0 = float(pm10p0_raw)/10
-
             point = Point("Test_SPSEOL") \
                 .tag("esp_id", esp_id) \
                 .field("temperature", temperature) \
