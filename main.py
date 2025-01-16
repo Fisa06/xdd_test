@@ -36,7 +36,7 @@ def process_incoming_data(json_str) -> Point:
 
 
         for key in mm_keys:
-            if (root["mm"][key])%(root["mm"]["divider"]) == 0:
+            if (root["mm"][key])%(root["mm"]["divider"]) == 0:                       #zmenit vsechno na jeden datovy typ
                 point.field(key, int( (root["mm"][key])/(root["mm"]["divider"])))
             else:
                 point.field(key, float( (root["mm"][key])/(root["mm"]["divider"])))
