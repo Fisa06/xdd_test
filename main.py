@@ -63,7 +63,7 @@ def on_message(client, userdata, msg):
 
 
 
-client = mqtt.Client()
+client = mqtt.Client(protocol=mqtt.MQTTv5)
 
 # Set username and password for broker authentication
 client.username_pw_set(USERNAME, PASSWORD)
