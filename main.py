@@ -13,9 +13,9 @@ INFLUXDB_BUCKET = "testing"
 
 BROKER = "hroch.spseol.cz"
 PORT = 8883
-USERNAME = "admin"
-PASSWORD = "admin"
-SENSOR_DATA_DUMP_TOPIC = "sensor_dump"
+USERNAME = "python_script"
+PASSWORD = "Excal1bur;"
+SENSOR_DATA_DUMP_TOPIC = "spseol_aq_sensors/+/data"
 
 client_influx = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
 write_api = client_influx.write_api(write_options=SYNCHRONOUS)
