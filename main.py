@@ -14,7 +14,7 @@ INFLUXDB_BUCKET = "testing"
 BROKER = "hroch.spseol.cz"
 PORT = 8883
 USERNAME = "python_script"
-PASSWORD = "Excal1bur;"
+PASSWORD = "asdf"
 SENSOR_DATA_DUMP_TOPIC = "spseol_aq_sensors/+/data"
 
 client_influx = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
@@ -42,7 +42,7 @@ def process_incoming_data(json_str) -> Point:
     except Exception as e:
         print(f"Failed to process given data: {e}")
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
         print("Connected successfully")
         client.subscribe(SENSOR_DATA_DUMP_TOPIC)
@@ -52,11 +52,10 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
 
     try:
-        if msg.topic == SENSOR_DATA_DUMP_TOPIC:
-            json_str = msg.payload.decode()
-            print(f"Packet received: {json_str}")
-            point = process_incoming_data(json_str)
-            write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
+        json_str = msg.payload.decode()
+        print(f"Packet received: {json_str}")
+        point = process_incoming_data(json_str)
+        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
 
     except Exception as e:
         print(f"Failed to process MQTT message: {e}")
