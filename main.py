@@ -4,8 +4,8 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 import json
 
-#INFLUXDB_URL = "http://172.25.200.8:8086/"
-INFLUXDB_URL = "http://localhost:8086/"
+INFLUXDB_URL = "http://172.25.200.8:8086/"
+#INFLUXDB_URL = "http://localhost:8086/"
 INFLUXDB_TOKEN = "NVrfQy2lSIzWDWFTDMbiT1wYlx0fl0g7_O7I9EMb8eV49XP89FPO3UdtMV6_F9IUysM_SASucHL7LQ948pve2w=="
 INFLUXDB_ORG = "spseol"
 INFLUXDB_BUCKET = "testing"
